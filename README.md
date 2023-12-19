@@ -1,25 +1,64 @@
-Docker Laravel
-1. Clone project
-git clone https://github.com/gabrielprogramadorweb/laravel-docker.git
+Em Laravel 5, a relação um-para-muitos é uma relação onde um modelo está associado a muitos registros em outro modelo. Aqui está um resumo sobre um-para-muitos em Laravel 5:
 
-2. Navigate in project directory
-cd docker-laravel
+### 1. Definição da Relação
 
-3. Composer install
-On Linux/MacOS: docker run --rm -v $(pwd):/app composer install
-On Windows in PowerShell: docker run --rm -v ${PWD}:/app composer install
-On Windows in CMD: docker run --rm -v %cd%:/app composer install
+Para estabelecer uma relação um-para-muitos, você deve definir um método no modelo "um" e usar o método `hasMany` para apontar para o modelo "muitos". Por exemplo, considere os modelos `Post` e `Comment`:
 
-4. Create .env file
-cp .env.example .env
+```php
+// Modelo Post
+class Post extends Model
+{
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
+    }
+}
 
-5. Start everything
-docker-compose up
+// Modelo Comment
+class Comment extends Model
+{
+    // ...
+}
+```
 
-6. Generate key for Laravel application
-docker-compose exec app php artisan key:generate
+### 2. Chave Estrangeira
 
-7. Profit
-Enter on http://localhost
+O Eloquent assume por padrão que a chave estrangeira no modelo "muitos" segue uma convenção de nomenclatura, como "post_id" (nome do modelo "um" no singular + "_id"). Se a sua chave estrangeira tem um nome diferente, você pode especificá-la como segundo argumento no método `hasMany`.
 
-Source: DigitalOcean Community
+### 3. Acesso aos Registros Relacionados
+
+Depois de definir a relação, você pode acessar os registros relacionados usando o método da relação. Por exemplo:
+
+```php
+$post = Post::find(1);
+$comentarios = $post->comments;
+```
+
+### 4. Inserção de Registros Relacionados
+
+Você pode adicionar registros relacionados usando o método `create` ou `save`. Por exemplo:
+
+```php
+$post = Post::find(1);
+$comentario = $post->comments()->create([
+    'conteudo' => 'Um comentário no post.',
+]);
+```
+
+### 5. Personalização da Chave Estrangeira
+
+Se a chave estrangeira não seguir as convenções de nomenclatura padrão, você pode personalizá-la nos métodos de relacionamento usando o segundo argumento.
+
+### 6. Carregamento Antecipado (Eager Loading)
+
+Para evitar o problema do N+1, onde uma consulta adicional é feita para cada relação, você pode usar o carregamento antecipado:
+
+```php
+$posts = Post::with('comments')->get();
+```
+
+### 7. Restrições e Consultas
+
+Você pode adicionar restrições e realizar consultas nos registros relacionados usando métodos adicionais no método da relação.
+
+Consulte: [documentação oficial do Laravel sobre Eloquent Relationships](https://laravel.com/docs/5.x/eloquent-relationships#one-to-many) para obter informações detalhadas.
